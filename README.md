@@ -6,7 +6,13 @@ C++/Python implementation of fast Walsh-Hadamard transform.
 
 Public domain.
 
-# Benchmark
+# Demo & Benchmark
+
+## Python 2D demo
+
+![demo](https://raw.githubusercontent.com/t-suzuki/fast_hadamard_transform_test/master/doc/demo_python.png)
+
+## C++ Benchmark
 
 ![demo](https://raw.githubusercontent.com/t-suzuki/fast_hadamard_transform_test/master/doc/demo_cpp.png)
 
