@@ -1,6 +1,7 @@
 #include "fast_hadamard_transform.hpp"
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include <chrono>
 
 template <typename Func>
@@ -64,13 +65,14 @@ int main(int argc, char* argv[]) {
   }
 
   { // benchmark
+    const size_t N_max = 1024*1024*8;
     const size_t N_benchmark = 1024;
-    const size_t n_iter = 100;
-    const size_t n_burnin = 10;
+    const size_t n_iter = 10;
+    const size_t n_burnin = 2;
 
-    std::vector<float> buf_src(N_benchmark);
-    std::vector<float> buf_dst(N_benchmark);
-    for (size_t i=0; i<N_benchmark; ++i) buf_src[i] = i*10.5f/(i + 100.0f);
+    std::vector<float> buf_src(N_max);
+    std::vector<float> buf_dst(N_max);
+    for (size_t i=0; i<N_max; ++i) buf_src[i] = i*10.5f/(i + 100.0f);
 
     timer("ad-hoc HT", n_iter, n_burnin, [&]{ 
         fht(buf_dst.data(), buf_src.data(), N_benchmark);
@@ -78,10 +80,20 @@ int main(int argc, char* argv[]) {
     });
 
     fht_plan<float> plan(N_benchmark);
-    timer("planned iHT", n_iter, n_burnin, [&]{ 
+    timer("planned HT", n_iter, n_burnin, [&]{ 
         plan.fht(buf_dst.data(), buf_src.data());
         plan.ifht(buf_src.data(), buf_dst.data());
     });
+
+    for (size_t sz=128; sz<=N_max; sz*=2) {
+      std::ostringstream oss;
+      oss << "planned HT (sz=" << sz << ")";
+      fht_plan<float> plan(sz);
+      timer(oss.str(), n_iter, n_burnin, [&]{ 
+          plan.fht(buf_dst.data(), buf_src.data());
+          plan.ifht(buf_src.data(), buf_dst.data());
+      });
+    }
   }
 
   return 0;
