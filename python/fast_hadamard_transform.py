@@ -1,6 +1,10 @@
 #!env python
 # Fast Hadamard Transform
 import numpy as np
+import scipy.misc
+import scipy.ndimage
+import matplotlib
+import matplotlib.pyplot as plt
 
 def _power_of_two(sz):
     n = 0
@@ -45,6 +49,18 @@ def ifht(x, unitary=False):
         n = _power_of_two(x.size)
         return fht(x)/2.0**n
 
+def fht2(x, unitary=False):
+    u'''2D Fast Hadamard Transform'''
+    x = np.array([fht(row, unitary) for row in x])
+    x = np.array([fht(col, unitary) for col in x.T])
+    return x
+
+def ifht2(x, unitary=False):
+    u'''2D Inverse Fast Hadamard Transform'''
+    x = np.array([ifht(row, unitary) for row in x])
+    x = np.array([ifht(col, unitary) for col in x.T])
+    return x
+
 if __name__=='__main__':
 
     # non-unitary
@@ -70,4 +86,36 @@ if __name__=='__main__':
     print 'HT(HT(x)) :', arr_ht_ht
     print 'IHT(HT(x)):', arr_ht_iht
     assert np.allclose(arr, arr_ht_iht)
+
+    # 2D
+    img = scipy.misc.lena()
+    img = scipy.ndimage.zoom(img, 1.0/8)
+    matplotlib.rc('font', size=9)
+    fig, axs = plt.subplots(4, 3, figsize=(12, 9))
+
+    img_ht = fht2(img)
+    img_ht_iht = ifht2(img_ht)
+    assert np.allclose(img, img_ht_iht)
+
+    ax = axs[0, 0]; ax.imshow(img, cmap='gray'); ax.set_title('org')
+    ax = axs[0, 1]; ax.imshow(img_ht); ax.set_title('HT(img)')
+    ax = axs[0, 2]; ax.imshow(img_ht_iht, cmap='gray'); ax.set_title('IHT(HT(img))')
+    ax = axs[1, 0]; ax.hist(img.ravel(), bins=50, edgecolor='none'); ax.set_title('org')
+    ax = axs[1, 1]; ax.hist(img_ht.ravel(), bins=50, edgecolor='none'); ax.set_title('HT(img)')
+    fig.delaxes(axs[1, 2])
+
+    img_u_ht = fht2(img, True)
+    img_u_ht_iht = ifht2(img_u_ht, True)
+    assert np.allclose(img, img_u_ht_iht)
+
+    ax = axs[2, 0]; ax.imshow(img, cmap='gray'); ax.set_title('org')
+    ax = axs[2, 1]; ax.imshow(img_u_ht); ax.set_title('uHT(img)')
+    ax = axs[2, 2]; ax.imshow(img_u_ht_iht, cmap='gray'); ax.set_title('uIHT(uHT(img))')
+    ax = axs[3, 0]; ax.hist(img.ravel(), bins=50, edgecolor='none'); ax.set_title('org')
+    ax = axs[3, 1]; ax.hist(img_u_ht.ravel(), bins=50, edgecolor='none'); ax.set_title('uHT(img)')
+    fig.delaxes(axs[3, 2])
+
+    fig.subplots_adjust(hspace=0.4)
+    fig.suptitle('Fast Hadamard Transform of 2D image', fontsize=12)
+    plt.show()
 
