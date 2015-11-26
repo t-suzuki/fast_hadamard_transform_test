@@ -1,0 +1,4 @@
+*.pyc
+*.pyo
+*.o
+cpp/fast_hadamard_transform
